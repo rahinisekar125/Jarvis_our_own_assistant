@@ -30,7 +30,7 @@ audio:
   frame_ms: 30
   input_device: ""
   input_channels: 1
-  wake_engine: vosk
+  wake_engine: whisper
   wake_aliases: hey jarvis
   wake_vosk_model_path: models/vosk-model-small-en-us-0.15
   stt_engine: whisper

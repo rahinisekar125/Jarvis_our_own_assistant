@@ -53,10 +53,10 @@ class AudioSettings:
     frame_ms: int = 30
     input_device: str = ""
     input_channels: int = 1
-    wake_engine: str = "vosk"
+    wake_engine: str = "whisper"
     wake_aliases: str = "hey jarvis"
     wake_vosk_model_path: str = "models/vosk-model-small-en-us-0.15"
-    stt_engine: str = "vosk"
+    stt_engine: str = "whisper"
     stt_min_confidence: float = 0.6
     speak_wake_greeting: bool = False
     silence_seconds: float = 0.75
@@ -244,7 +244,7 @@ def load_settings(config_path: str | None = None) -> Settings:
         frame_ms=int(audio_raw.get("frame_ms", 30)),
         input_device=os.getenv("JARVIS_INPUT_DEVICE", audio_raw.get("input_device", "")),
         input_channels=int(os.getenv("JARVIS_INPUT_CHANNELS", audio_raw.get("input_channels", 1))),
-        wake_engine=os.getenv("JARVIS_WAKE_ENGINE", audio_raw.get("wake_engine", "vosk")).lower(),
+        wake_engine=os.getenv("JARVIS_WAKE_ENGINE", audio_raw.get("wake_engine", "whisper")).lower(),
         wake_aliases=os.getenv(
             "JARVIS_WAKE_ALIASES",
             audio_raw.get("wake_aliases", "hey jarvis"),

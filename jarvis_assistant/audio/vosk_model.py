@@ -12,7 +12,7 @@ def get_vosk_model(model_path: str):
     if not path.is_absolute():
         path = Path.cwd() / path
     if not path.exists():
-        raise RuntimeError(f"Vosk model not found: {path}")
+        raise RuntimeError(f"Vosk model not found at {path}. Please download the Vosk model or use a different wake engine (e.g., SAPI on Windows)")
 
     SetLogLevel(-1)
     return Model(str(path))

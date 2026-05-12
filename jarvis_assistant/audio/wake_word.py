@@ -353,30 +353,42 @@ def create_wake_word_detector(
 
 def _create_live_wake_detector(settings: AudioSettings, tmp_dir: Path) -> WakeWordDetector:
     engine = settings.wake_engine.lower().strip() or "auto"
-    if engine in {"vosk", "auto"}:
-        try:
-            LOGGER.info("Using Vosk wake engine aliases=%s", _wake_aliases(settings))
-            return VoskWakeWordDetector(settings)
-        except Exception as exc:  # noqa: BLE001 - fall through to other wake engines.
-            if engine == "vosk":
-                raise
-            LOGGER.warning("Vosk wake word unavailable, trying next wake engine: %s", exc, exc_info=True)
+    if engine == "auto":
+        candidates = ["sapi", "vosk"] if sys.platform == "win32" else ["vosk", "sapi"]
+    else:
+        candidates = [engine]
 
-    if engine in {"sapi", "auto"}:
-        try:
-            LOGGER.info("Using Windows SAPI wake engine aliases=%s", _wake_aliases(settings))
-            return SapiWakeWordDetector(settings)
-        except Exception as exc:  # noqa: BLE001 - fall through to other wake engines.
-            if engine == "sapi":
-                raise
-            LOGGER.warning("SAPI wake word unavailable, trying next wake engine: %s", exc, exc_info=True)
+    if engine == "auto" and settings.picovoice_access_key:
+        candidates.append("porcupine")
 
-    if engine in {"porcupine", "auto"} and settings.picovoice_access_key:
-        try:
-            return PorcupineWakeWordDetector(settings)
-        except Exception as exc:  # noqa: BLE001 - Whisper keeps the assistant usable.
-            LOGGER.warning("Porcupine wake word unavailable, using Whisper wake mode: %s", exc, exc_info=True)
-    elif engine == "porcupine":
+    for current in candidates:
+        if current == "vosk":
+            try:
+                LOGGER.info("Using Vosk wake engine aliases=%s", _wake_aliases(settings))
+                return VoskWakeWordDetector(settings)
+            except Exception as exc:  # noqa: BLE001 - fall through to other wake engines.
+                if engine == "vosk":
+                    raise
+                LOGGER.warning("Vosk wake word unavailable, trying next wake engine: %s", exc, exc_info=True)
+        elif current == "sapi":
+            try:
+                LOGGER.info("Using Windows SAPI wake engine aliases=%s", _wake_aliases(settings))
+                return SapiWakeWordDetector(settings)
+            except Exception as exc:  # noqa: BLE001 - fall through to other wake engines.
+                if engine == "sapi":
+                    raise
+                LOGGER.warning("SAPI wake word unavailable, trying next wake engine: %s", exc, exc_info=True)
+        elif current == "porcupine":
+            try:
+                return PorcupineWakeWordDetector(settings)
+            except Exception as exc:  # noqa: BLE001 - Whisper keeps the assistant usable.
+                if engine == "porcupine":
+                    raise
+                LOGGER.warning("Porcupine wake word unavailable, using Whisper wake mode: %s", exc, exc_info=True)
+        else:
+            LOGGER.warning("Unknown wake engine '%s', skipping", current)
+
+    if engine == "porcupine":
         raise RuntimeError("PICOVOICE_ACCESS_KEY is required for Porcupine wake word mode")
 
     LOGGER.info("Using Whisper wake engine")
