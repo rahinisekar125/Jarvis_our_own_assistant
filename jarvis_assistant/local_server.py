@@ -5,6 +5,7 @@ import logging
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
+from urllib.parse import urlparse
 
 from .agent.fast_intents import match_fast_intent
 from .doctor import build_checks
@@ -29,10 +30,11 @@ def run_local_server(settings, host: str = "127.0.0.1", port: int = 8765, public
         server_version = "JarvisLocalHTTP/0.1"
 
         def do_GET(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
-            if self.path in {"/", "/index.html"}:
+            path = self._path()
+            if path in {"/", "/index.html"}:
                 self._send_html(_index_html(public=public))
                 return
-            if self.path == "/health":
+            if path == "/health":
                 if public:
                     self._send_json(
                         {
@@ -67,8 +69,24 @@ def run_local_server(settings, host: str = "127.0.0.1", port: int = 8765, public
                 return
             self._send_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
 
+        def do_HEAD(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
+            if self._path() == "/health":
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.end_headers()
+                return
+            self.send_response(HTTPStatus.NOT_FOUND)
+            self.end_headers()
+
+        def do_OPTIONS(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
+            self.send_response(HTTPStatus.NO_CONTENT)
+            self._send_cors_headers()
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+
         def do_POST(self) -> None:  # noqa: N802 - BaseHTTPRequestHandler API.
-            if self.path != "/command":
+            if self._path() != "/command":
                 self._send_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
                 return
 
@@ -117,11 +135,17 @@ def run_local_server(settings, host: str = "127.0.0.1", port: int = 8765, public
                 raise ValueError("JSON body must be an object")
             return data
 
+        def _path(self) -> str:
+            path = urlparse(self.path).path or "/"
+            if path != "/":
+                path = path.rstrip("/")
+            return path
+
         def _send_json(self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK) -> None:
             body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Access-Control-Allow-Origin", "*" if public else "http://127.0.0.1:%s" % port)
+            self._send_cors_headers()
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -133,6 +157,9 @@ def run_local_server(settings, host: str = "127.0.0.1", port: int = 8765, public
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+
+        def _send_cors_headers(self) -> None:
+            self.send_header("Access-Control-Allow-Origin", "*" if public else "http://127.0.0.1:%s" % port)
 
     httpd = ThreadingHTTPServer((host, port), JarvisHandler)
     label = "public-safe" if public else "localhost"
