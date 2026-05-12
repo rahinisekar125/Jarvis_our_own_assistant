@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import re
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 from urllib.parse import urlparse
 
 from .agent.fast_intents import match_fast_intent
@@ -191,14 +195,103 @@ def _process_public_command(text: str) -> dict[str, Any]:
             "tool_results": [],
         }
 
+    ai_response = _public_ai_answer(text)
+    if ai_response:
+        return {"ok": True, "response": ai_response, "tool_results": []}
+
+    fallback = _public_fallback_answer(text)
+    if fallback:
+        return {"ok": True, "response": fallback, "tool_results": []}
+
     return {
         "ok": True,
         "response": (
-            "Jarvis public demo is running. Try a safe text command like "
-            "'what is 2 plus 2', 'time batao', or 'who are you'."
+            "Jarvis public demo is running, but the full public text brain is not configured yet. "
+            "Add GEMINI_API_KEY in Render environment variables for richer answers. "
+            "I can still answer safe local demo commands like 'what is 2 plus 2', 'time batao', "
+            "'what is JS', or 'who are you'."
         ),
         "tool_results": [],
     }
+
+
+def _public_ai_answer(text: str) -> str:
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        return ""
+
+    model = os.getenv("MODEL", os.getenv("GEMINI_MODEL", "gemini-2.5-flash")).strip() or "gemini-2.5-flash"
+    prompt = (
+        "You are Jarvis, a public-safe web demo of a Windows voice assistant. "
+        "Answer the user's text question helpfully and concisely. "
+        "Do not claim you can access this server's desktop, files, microphone, browser, shell, apps, or private data. "
+        "If the user asks for a local desktop action, explain that it works only in local Windows mode.\n\n"
+        f"User: {text}"
+    )
+    payload = {
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 512},
+    }
+    request = Request(
+        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=20) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        return str(data["candidates"][0]["content"]["parts"][0]["text"]).strip()
+    except (HTTPError, URLError, KeyError, IndexError, TimeoutError, json.JSONDecodeError) as exc:
+        LOGGER.warning("Public Gemini answer unavailable: %s", exc)
+        return ""
+
+
+def _public_fallback_answer(text: str) -> str:
+    clean = " ".join(text.strip().split())
+    lowered = clean.lower().rstrip("?.!")
+
+    topic = _extract_definition_topic(lowered)
+    if topic:
+        definitions = {
+            "ai": "AI, or artificial intelligence, is software that can perform tasks that usually need human-like reasoning, such as understanding language, recognizing patterns, and making decisions.",
+            "api": "An API is a set of rules that lets one software system talk to another. Apps use APIs to request data, trigger actions, or connect services.",
+            "css": "CSS, or Cascading Style Sheets, is the language used to style web pages: colors, spacing, layouts, fonts, and responsive design.",
+            "html": "HTML is the markup language used to structure web pages. It defines elements like headings, paragraphs, buttons, links, images, and forms.",
+            "jarvis": "Jarvis is this project: a local Windows assistant that can listen for a wake phrase, understand text or voice commands, and safely run desktop tools.",
+            "js": "JS usually means JavaScript. It is the programming language used to make websites interactive, run browser logic, call APIs, and build many web apps.",
+            "javascript": "JavaScript is a programming language used mainly for web interactivity, backend services with Node.js, mobile apps, and many modern full-stack projects.",
+            "python": "Python is a popular programming language known for readable syntax. It is widely used for automation, AI, data work, web backends, and scripting.",
+            "render": "Render is a cloud hosting platform for web services, static sites, background workers, cron jobs, databases, and deploys from Git repositories.",
+        }
+        if topic in definitions:
+            return definitions[topic]
+        return (
+            f"{topic.upper() if len(topic) <= 3 else topic.title()} is a topic I can explain better once "
+            "GEMINI_API_KEY is configured on the public deployment. Right now this demo has a small offline fallback brain."
+        )
+
+    if lowered in {"hello jarvis", "hello", "hi", "hey"}:
+        return "Hello. Jarvis public demo is online. Ask me a safe text question, or try the local Windows app for voice and desktop control."
+
+    if "demo video" in lowered or "working demo" in lowered:
+        return "The demo video shows the local Windows version: wake word, voice input, fullscreen output, app control, browser actions, and speech. The public site is text-only for safety."
+
+    return ""
+
+
+def _extract_definition_topic(text: str) -> str:
+    patterns = [
+        r"^(?:what is|what's|what are|define|explain|tell me about)\s+(?P<topic>.+)$",
+        r"^(?P<topic>.+)\s+(?:kya hai|means what)$",
+    ]
+    for pattern in patterns:
+        match = re.match(pattern, text)
+        if match:
+            topic = match.group("topic").strip().strip("'\"")
+            aliases = {"java script": "javascript", "node js": "node.js"}
+            return aliases.get(topic, topic)
+    return ""
 
 
 def _index_html(public: bool = False) -> str:
