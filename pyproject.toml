@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jarvis-local-assistant"
+version = "0.1.0"
+description = "Local Windows voice assistant with wake-word listening, Hinglish commands, and safe desktop tools."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "faster-whisper>=1.0.3",
+    "psutil>=5.9.8",
+    "pvporcupine>=3.0.2",
+    "sounddevice>=0.5.1",
+    "python-dotenv>=1.0.1",
+    "PyYAML>=6.0.1",
+    "pyttsx3>=2.90",
+    "pywin32>=306; platform_system == 'Windows'",
+    "requests>=2.32.3",
+    "vosk>=0.3.45",
+    "Pillow>=11.3.0",
+    "moviepy>=2.2.1",
+    "imageio-ffmpeg>=0.6.0",
+    "edge-tts>=7.2.8",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2.0"]
+
+[project.scripts]
+jarvis-assistant = "jarvis_assistant.main:main"
+
+[tool.setuptools.packages.find]
+include = ["jarvis_assistant*"]

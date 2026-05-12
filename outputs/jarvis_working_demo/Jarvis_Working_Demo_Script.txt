@@ -1,0 +1,29 @@
+1. Jarvis Working Demo
+This is the working demo of Jarvis on Ayush's Windows laptop. The assistant stays in standby, wakes only when it hears Hey Jarvis, opens a fullscreen tech interface, listens for a command, acts, speaks, and returns to standby.
+
+2. Step 1: Wake Jarvis
+First, the user says Hey Jarvis. Wake detection happens locally using Vosk. Jarvis confirms activation, opens the fullscreen listening console, and starts recording the next command.
+
+3. Step 2: Hinglish Time Command
+Next, the user says time batao. Jarvis understands the Hinglish command and replies: Abhi 02:30 PM hai. This is handled as a fast local intent, so it does not need a slow planning call.
+
+4. Step 3: System Status
+Now the user asks for battery status. Jarvis checks local system information and formats the answer clearly. In this run, the result is: CPU 39.4%, memory 62.3%, disk 40.4%, battery 90% hai, charging hai.
+
+5. Step 4: App Automation
+Jarvis can automate desktop apps. For example, the user can say, open Notepad and type abc. Jarvis opens the application, focuses the window, and types the requested text.
+
+6. Step 5: Browser and Media
+Jarvis also understands media commands. If the user says Arijit Singh chalao, Jarvis opens YouTube search for that media and replies in Hinglish.
+
+7. Step 6: Agent Tools
+For bigger tasks, Jarvis works like an agent. It can choose tools for shell commands, files, browser control, system information, git, Docker, deployments, and task workflows. The safety layer validates risky actions.
+
+8. Step 7: Fullscreen Output
+When Jarvis has an answer, it opens a fullscreen cyber output console. The result is visible on screen while Jarvis speaks. The user can press Q, Escape, close the window, or click Quit Speaking.
+
+9. Step 8: Quit Interrupt
+If the answer is too long, the user can simply say quit. Jarvis stops speaking, closes the active visual flow, and returns to standby. After that, the only way to activate again is still Hey Jarvis.
+
+10. Demo Complete
+That is the complete working flow. Jarvis listens in the background, wakes on Hey Jarvis, understands Indian English and Hinglish, performs actions, shows fullscreen output, speaks naturally, and can be interrupted with quit.

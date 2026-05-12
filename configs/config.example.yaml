@@ -1,0 +1,80 @@
+﻿assistant:
+  name: Jarvis
+  max_tool_rounds: 5
+
+llm:
+  provider: gemini
+  temperature: 0.2
+  timeout_seconds: 45
+  max_retries: 3
+  retry_base_delay_seconds: 2
+  retry_max_delay_seconds: 30
+  cooldown_seconds: 1
+  ollama_backup_enabled: true
+  voice_provider: gemini
+  voice_timeout_seconds: 5
+  voice_max_retries: 1
+  voice_retry_base_delay_seconds: 0.5
+  voice_cooldown_seconds: 0
+  voice_ollama_backup_enabled: true
+  ollama:
+    base_url: http://localhost:11434
+    model: llama3.2:1b
+    timeout_seconds: 60
+    max_retries: 1
+  gemini:
+    model: gemini-2.5-flash
+
+audio:
+  sample_rate: 16000
+  frame_ms: 30
+  input_device: ""
+  input_channels: 1
+  wake_engine: vosk
+  wake_aliases: hey jarvis
+  wake_vosk_model_path: models/vosk-model-small-en-us-0.15
+  stt_engine: whisper
+  stt_min_confidence: 0.60
+  speak_wake_greeting: false
+  silence_seconds: 0.32
+  max_record_seconds: 5
+  speech_start_timeout_seconds: 1.2
+  energy_threshold: 75
+  wake_word_phrase: hey jarvis
+  wake_greeting: hi Ayush tell me something what you want
+  whisper_wake_seconds: 1.6
+  whisper_wake_cooldown_seconds: 0.05
+  wake_energy_threshold: 180
+  wake_whisper_model: tiny.en
+  whisper_model: base
+  whisper_language: en
+  whisper_initial_prompt: Indian English and Hinglish voice command for Jarvis. Common words: Ayush, Jarvis, kholo, batao, chalao, bajao, likho, dhoondo, notepad, chrome, battery, time, date.
+  whisper_hotwords: Ayush Jarvis hey Jarvis Indian English Hinglish kholo kholna batao chalao bajao likho dhoondo dhundo notepad chrome YouTube battery time date system status open type search play
+  whisper_device: cpu
+  whisper_compute_type: int8
+
+tts:
+  enabled: true
+  backend: edge
+  voice: en-IN-PrabhatNeural
+  rate: 250
+  volume: 1.0
+  edge_rate: +8%
+  edge_volume: +0%
+
+visual:
+  enabled: true
+  always_on_top: true
+  width: 520
+  height: 320
+  duration_seconds: 18
+  show_startup: false
+  show_wake: true
+  show_heard: false
+  show_final: true
+
+security:
+  command_timeout_seconds: 60
+  file_read_limit_bytes: 200000
+  require_confirmation_for_shell: false
+  allowed_paths: []

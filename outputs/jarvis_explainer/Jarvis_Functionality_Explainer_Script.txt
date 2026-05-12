@@ -1,0 +1,32 @@
+1. Jarvis
+This video shows the current Jarvis system running locally on Ayush's Windows laptop. Jarvis wakes only on Hey Jarvis, opens a fullscreen tech console, listens for a command, runs safe local actions, shows the result, speaks back, and then returns to standby.
+
+2. Wake Flow
+The wake layer is local and fast. It listens for exactly Hey Jarvis. When detected, Jarvis opens the fullscreen cyber listening screen and begins command mode. If the popup is cancelled, Jarvis stops that cycle and goes back to listening for the wake word.
+
+3. Responsive Speech
+Command recognition is tuned for Indian English and Hinglish. Whisper uses hotwords like kholo, batao, chalao, likho, dhoondo, Chrome, YouTube, battery, and time. Short silence detection and model warmup make the assistant feel much more responsive.
+
+4. Command Examples
+Jarvis understands practical voice commands. You can ask for the time, battery status, open applications, type text into apps, search the web, or play media. Notepad is only one example; the same open and type flow can be used with other supported applications.
+
+5. Agent Brain
+The brain is layered for speed and reliability. Common commands stay local and do not call the cloud. For richer tasks, Gemini plans the action with structured JSON. If the primary brain is unstable, Jarvis can switch to the local Ollama backup.
+
+6. Tool System
+Jarvis has a modular tool system. It can open desktop apps, control browser pages, search the web, read or write files, check system information, and help with developer workflows such as git, Docker, deployments, and task boards.
+
+7. Safety Layer
+Because Jarvis can perform real operating system actions, it includes a safety layer. High-risk commands are blocked or confirmed, file operations stay inside allowed areas, and errors are handled so the voice loop keeps running.
+
+8. Memory and Feedback
+Jarvis stores memory in SQLite. It keeps recent commands, assistant responses, preferences, and useful context. After a tool runs, the result is logged and can be used by the agent to refine the response.
+
+9. Fullscreen Output
+The visual output is now fullscreen and matches the Jarvis cyber interface. When Jarvis answers, the result appears on screen and is spoken aloud. You can press Q, press Escape, close the popup, or say quit to stop speaking and return to standby.
+
+10. Developer Mode
+Developer mode helps with daily work. Jarvis can open today's tasks, check git status, list Docker containers, start Docker Compose, show files, show the current directory, and run deployment workflows when the project provides them.
+
+11. Ready to Use
+The final flow is simple. Say Hey Jarvis, wait for the fullscreen listening interface, speak naturally, and Jarvis will act, show the result, speak the response, and return to standby. Anytime the speech is too long, say quit and Jarvis stops immediately.
